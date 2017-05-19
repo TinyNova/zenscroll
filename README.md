@@ -1,3 +1,6 @@
+<h3>Tinynova ZenScroll</h3>
+<p>Forked to add in scrollX functionality</p>
+
 <p align="center">
 	<a href="https://zengabor.github.io/zenscroll/">
 		<img src="https://zengabor.github.io/zenscroll/zenscroll.png" alt="Zenscroll">
@@ -175,7 +178,7 @@ zenscroll.toY(50)
 ````
 
 
-### 4. Scroll an element into view 
+### 4. Scroll an element into view
 
 If the element is already fully visible, with the edge offset at the top and bottom, then no scroll is performed. Otherwise Zenscroll will try to make both top & bottom of element visible, if possible. If the element is higher than the visible viewport then it will simply scroll to the top of the element, including the edge offset.
 
@@ -187,8 +190,8 @@ Tip: If you resize an element with a transition of 500ms, you can postpone calli
 
 ````js
 image.classList.remove("is-small")
-setTimeout(function () { 
-    zenscroll.intoView(image2) 
+setTimeout(function () {
+    zenscroll.intoView(image2)
 }, 500)
 ````
 

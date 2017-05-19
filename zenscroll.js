@@ -5,12 +5,12 @@
  * Copyright 2015–2017 Gabor Lenard
  *
  * This is free and unencumbered software released into the public domain.
- * 
+ *
  * Anyone is free to copy, modify, publish, use, compile, sell, or
  * distribute this software, either in source code form or as a compiled
  * binary, for any purpose, commercial or non-commercial, and by any
  * means.
- * 
+ *
  * In jurisdictions that recognize copyright laws, the author or authors
  * of this software dedicate any and all copyright interest in the
  * software to the public domain. We make this dedication for the benefit
@@ -18,7 +18,7 @@
  * successors. We intend this dedication to be an overt act of
  * relinquishment in perpetuity of all present and future rights to this
  * software under copyright law.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -26,9 +26,9 @@
  * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
- * 
+ *
  * For more information, please refer to <http://unlicense.org>
- * 
+ *
  */
 
 /*jshint devel:true, asi:true */
@@ -54,7 +54,6 @@
 	}
 }(this, function () {
 	"use strict"
-
 
 	// Detect if the browser already supports native smooth scrolling (e.g., Firefox 36+ and Chrome 49+) and it is enabled:
 	var isNativeSmoothScrollEnabledOn = function (elem) {
@@ -124,6 +123,38 @@
 						var y = Math.max(0, Math.floor(startY + distance*(p < 0.5 ? 2*p*p : p*(4 - p*2)-1)))
 						container.toY(y)
 						if (p < 1 && (container.getHeight() + y) < container.body.scrollHeight) {
+							loopScroll()
+						} else {
+							setTimeout(stopScroll, 99) // with cooldown time
+							if (onDone) {
+								onDone()
+							}
+						}
+					}, 9))
+				})()
+			}
+		}
+
+		var scrollToX = function (targetX, duration, onDone) {
+			stopScroll()
+			if (duration === 0 || (duration && duration < 0) || isNativeSmoothScrollEnabledOn(container.body)) {
+				container.toY(targetY)
+				if (onDone) {
+					onDone()
+				}
+			} else {
+				var startX = container.getX()
+				var distance = Math.max(0, targetX) - startX
+				var startTime = new Date().getTime()
+				duration = duration || Math.min(Math.abs(distance), defaultDuration);
+				(function loopScroll() {
+					setScrollTimeoutId(setTimeout(function () {
+						// Calculate percentage:
+						var p = Math.min(1, (new Date().getTime() - startTime) / duration)
+						// Calculate the absolute vertical position:
+						var x = Math.max(0, Math.floor(startX + distance*(p < 0.5 ? 2*p*p : p*(4 - p*2)-1)))
+						container.toX(x)
+						if (p < 1 && (container.getWidth() + x) < container.body.scrollWidth) {
 							loopScroll()
 						} else {
 							setTimeout(stopScroll, 99) // with cooldown time
@@ -208,11 +239,13 @@
 			setup: setup,
 			to: scrollToElem,
 			toY: scrollToY,
+			toX: scrollToX,
 			intoView: scrollIntoView,
 			center: scrollToCenterOf,
 			stop: stopScroll,
 			moving: function () { return !!scrollTimeoutId },
 			getY: container.getY,
+			getX: container.getX,
 			getTopOf: container.getTopOf
 		}
 
@@ -226,6 +259,7 @@
 	var zenscroll = makeScroller({
 		body: document.scrollingElement || document.body,
 		toY: function (y) { window.scrollTo(0, y) },
+		toX: function (x) { console.log('MOOO!') },
 		getY: getDocY,
 		getHeight: function () { return window.innerHeight || docElem.clientHeight },
 		getTopOf: function (elem) { return elem.getBoundingClientRect().top + getDocY() - docElem.offsetTop }
@@ -238,7 +272,7 @@
 	 * @param {scrollContainer} The vertical position within the document.
 	 * @param {defaultDuration} Optionally a value for default duration, used for each scroll method by default.
 	 *        Ignored if 0 or null or undefined.
-	 * @param {edgeOffset} Optionally a value for the edge offset, used by each scroll method by default. 
+	 * @param {edgeOffset} Optionally a value for the edge offset, used by each scroll method by default.
 	 *        Ignored if null or undefined.
 	 * @returns A scroller object, similar to `zenscroll` but controlling the provided element.
 	 */
@@ -246,8 +280,11 @@
 		return makeScroller({
 			body: scrollContainer,
 			toY: function (y) { scrollContainer.scrollTop = y },
+			toX: function (x) { scrollContainer.scrollLeft = x },
 			getY: function () { return scrollContainer.scrollTop },
+			getX: function () { return scrollContainer.scrollLeft },
 			getHeight: function () { return Math.min(scrollContainer.clientHeight, window.innerHeight || docElem.clientHeight) },
+			getWidth: function () { return Math.min(scrollContainer.clientWidth, window.innerWidth || docElem.clientWidth) },
 			getTopOf: function (elem) { return elem.offsetTop }
 		}, defaultDuration, edgeOffset)
 	}
